@@ -1,0 +1,33 @@
+cat > .gitignore << 'EOF'
+# Env files
+.env
+frontend/.env
+backend/.env
+*.env
+!*.env.example
+
+# Node
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+backend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Postgres data (if you have a local data folder)
+pgdata/
+postgres-data/
+
+# IDE
+.vscode/
+.idea/
+EOF

@@ -22,15 +22,16 @@ const __dirname = dirname(__filename);
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
-    }),
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: false,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+}),
     CategoryModule,
     ProductModule,
     OrderModule,
@@ -43,5 +44,6 @@ const __dirname = dirname(__filename);
   ],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule {}

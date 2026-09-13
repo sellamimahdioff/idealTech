@@ -1,25 +1,23 @@
 import PDFDocument from 'pdfkit';
-import { createWriteStream } from 'fs';
-import { join } from 'path';
+import { PassThrough } from 'stream';
+import cloudinary from '../../config/cloudinary.config.js';
 import type { Order } from '../order/entities/order.entity.js';
 
 const NAVY = '#1B3A57';
 const RED = '#E0212B';
 const GRAY = '#A6A6A6';
 
+// Génère le PDF en mémoire (jamais écrit sur le disque local) puis l'envoie
+// directement à Cloudinary — indispensable sur un hébergeur au disque éphémère.
 export function generateInvoicePdf(
   invoiceNumber: string,
   order: Order,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const fileName = `${invoiceNumber}.pdf`;
-    const filePath = join(process.cwd(), 'uploads', 'invoices', fileName);
-
     const doc = new PDFDocument({ margin: 50 });
-    const stream = createWriteStream(filePath);
-    doc.pipe(stream);
+    const bufferStream = new PassThrough();
+    doc.pipe(bufferStream);
 
-    // ---- En-tête ----
     doc
       .fontSize(22)
       .fillColor(NAVY)
@@ -48,11 +46,7 @@ export function generateInvoicePdf(
 
     doc.moveTo(50, 130).lineTo(545, 130).strokeColor('#E5E7EB').stroke();
 
-    // ---- Infos client ----
-    doc
-      .fontSize(10)
-      .fillColor(NAVY)
-      .text('Facturé à :', 50, 145);
+    doc.fontSize(10).fillColor(NAVY).text('Facturé à :', 50, 145);
     doc
       .fontSize(10)
       .fillColor('#2E2E2E')
@@ -61,13 +55,8 @@ export function generateInvoicePdf(
       .text(order.customer_email, 50, 190)
       .text(order.customer_phone, 50, 204);
 
-    // ---- Tableau des articles ----
     let y = 240;
-    doc
-      .fontSize(9)
-      .fillColor('white')
-      .rect(50, y, 495, 24)
-      .fill(NAVY);
+    doc.fontSize(9).fillColor('white').rect(50, y, 495, 24).fill(NAVY);
     doc
       .fillColor('white')
       .text('Article', 60, y + 7)
@@ -86,20 +75,15 @@ export function generateInvoicePdf(
           align: 'right',
           width: 65,
         });
-      doc
-        .moveTo(50, y + 26)
-        .lineTo(545, y + 26)
-        .strokeColor('#F0F0F0')
-        .stroke();
+      doc.moveTo(50, y + 26).lineTo(545, y + 26).strokeColor('#F0F0F0').stroke();
       y += 26;
     }
 
-    // ---- Total ----
     y += 20;
     doc
       .fontSize(12)
       .fillColor(NAVY)
-      .text('Total TTC', 380, y, { continued: false })
+      .text('Total TTC', 380, y)
       .fontSize(14)
       .text(`${Number(order.total_amount).toFixed(2)} TND`, 470, y, {
         align: 'right',
@@ -109,16 +93,32 @@ export function generateInvoicePdf(
     doc
       .fontSize(8)
       .fillColor(GRAY)
-      .text(
-        'Merci pour votre confiance — iDeal Tech',
-        50,
-        750,
-        { align: 'center', width: 495 },
-      );
+      .text('Merci pour votre confiance — iDeal Tech', 50, 750, {
+        align: 'center',
+        width: 495,
+      });
 
     doc.end();
 
-    stream.on('finish', () => resolve(`/uploads/invoices/${fileName}`));
-    stream.on('error', reject);
+    const chunks: Buffer[] = [];
+    bufferStream.on('data', (chunk) => chunks.push(chunk));
+    bufferStream.on('end', () => {
+      const pdfBuffer = Buffer.concat(chunks);
+
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'ideal-tech/invoices',
+          resource_type: 'raw',
+          public_id: invoiceNumber,
+          format: 'pdf',
+        },
+        (error, result) => {
+          if (error || !result) return reject(error);
+          resolve(result.secure_url);
+        },
+      );
+      uploadStream.end(pdfBuffer);
+    });
+    bufferStream.on('error', reject);
   });
 }

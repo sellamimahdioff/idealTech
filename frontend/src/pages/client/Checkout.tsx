@@ -60,7 +60,9 @@ export function Checkout() {
         })),
       });
       clear();
-      navigate(`/confirmation/${order.order_number}`);
+      // On transmet la commande complète (avec les produits) à la page de confirmation
+      // pour pouvoir y afficher la pop-up d'avis sans appel API supplémentaire.
+      navigate(`/confirmation/${order.order_number}`, { state: { order } });
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
@@ -136,7 +138,6 @@ export function Checkout() {
           </div>
         </div>
 
-        {/* Région : liste déroulante pour la Tunisie, champ libre sinon */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-[#2E2E2E]">
             Région / Gouvernorat

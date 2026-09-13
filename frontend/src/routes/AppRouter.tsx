@@ -11,6 +11,8 @@ import { Checkout } from '../pages/client/Checkout.js';
 import { OrderConfirmation } from '../pages/client/OrderConfirmation.js';
 import { QuoteRequest } from '../pages/client/QuoteRequest.js';
 import { OrderTracking } from '../pages/client/OrderTracking.js';
+import { About } from '../pages/client/About.js';
+import { Delivery } from '../pages/client/Delivery.js';
 
 import { AdminLogin } from '../pages/admin/AdminLogin.js';
 import { Dashboard } from '../pages/admin/Dashboard.js';
@@ -39,6 +41,8 @@ export function AppRouter() {
           />
           <Route path="/devis" element={<QuoteRequest />} />
           <Route path="/suivi" element={<OrderTracking />} />
+          <Route path="/a-propos" element={<About />} />
+          <Route path="/livraison" element={<Delivery />} />
         </Route>
 
         <Route path="/admin/login" element={<AdminLogin />} />

@@ -1,7 +1,14 @@
-import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
+import type { Order } from '../../services/types.js';
+import { PostOrderReviewModal } from '../../components/product/PostOrderReviewModal.js';
 
 export function OrderConfirmation() {
   const { orderNumber } = useParams();
+  const location = useLocation();
+  const order = (location.state as { order?: Order } | null)?.order;
+
+  const [showReviewModal, setShowReviewModal] = useState(!!order?.items.length);
 
   return (
     <div className="max-w-lg mx-auto px-6 py-20 text-center">
@@ -30,6 +37,13 @@ export function OrderConfirmation() {
           Continuer mes achats
         </Link>
       </div>
+
+      {showReviewModal && order && (
+        <PostOrderReviewModal
+          order={order}
+          onClose={() => setShowReviewModal(false)}
+        />
+      )}
     </div>
   );
 }

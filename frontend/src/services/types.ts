@@ -11,6 +11,7 @@ export interface Product {
   id: number;
   sku: string;
   name: string;
+  brand?: string;
   description?: string;
   retail_price: number;
   wholesale_price?: number;
@@ -51,6 +52,12 @@ export interface OrderItem {
   subtotal: number;
 }
 
+export interface OrderStatusHistoryEntry {
+  id: number;
+  status: OrderStatus;
+  changed_at: string;
+}
+
 export interface Order {
   id: number;
   order_number: string;
@@ -60,11 +67,15 @@ export interface Order {
   customer_email: string;
   customer_phone: string;
   customer_company?: string;
+  customer_country?: string;
+  customer_region?: string;
   shipping_address?: string;
   total_amount: number;
   items: OrderItem[];
+  status_history?: OrderStatusHistoryEntry[];
   created_at: string;
 }
+
 export interface Review {
   id: number;
   author_name: string;

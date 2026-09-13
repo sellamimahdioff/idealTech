@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { reviewService } from '../../services/ReviewService.js';
-import type { Review } from '../../services/types.js';
+import { reviewService } from '../../../services/ReviewService.js';
+import type { Review } from '../../../services/types.js';
 
 function Stars({ rating, size = 'text-base' }: { rating: number; size?: string }) {
   return (

@@ -4,6 +4,10 @@ import type { PaginatedResult, Product } from './types.js';
 export interface ProductQuery {
   categoryId?: number;
   search?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
   page?: number;
   limit?: number;
 }
@@ -18,6 +22,16 @@ export const productService = {
 
   getOne: async (id: number): Promise<Product> => {
     const { data } = await api.get(`/products/${id}`);
+    return data;
+  },
+
+  getRelated: async (id: number): Promise<Product[]> => {
+    const { data } = await api.get(`/products/${id}/related`);
+    return data;
+  },
+
+  getBrands: async (): Promise<string[]> => {
+    const { data } = await api.get('/products/brands');
     return data;
   },
 
@@ -44,6 +58,25 @@ export const productService = {
     });
     return data;
   },
+
+  reorderImages: async (id: number, images: string[]) => {
+    const { data } = await api.patch(`/products/${id}/images/reorder`, {
+      images,
+    });
+    return data;
+  },
+
+  subscribeStockAlert: async (id: number, email: string) => {
+    const { data } = await api.post(`/products/${id}/notify-me`, { email });
+    return data;
+  },
+
+  exportCsv: async (): Promise<void> => {
+    const response = await api.get('/products/export', {
+      responseType: 'blob',
+    });
+    downloadBlob(response.data, `produits-${Date.now()}.csv`);
+  },
 };
 
 export const uploadService = {
@@ -65,3 +98,14 @@ export const uploadService = {
     return data;
   },
 };
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}

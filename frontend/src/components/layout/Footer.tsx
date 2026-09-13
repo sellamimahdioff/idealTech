@@ -1,6 +1,20 @@
+import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { categoryService } from '../../services/categoryService.js';
+import type { Category } from '../../services/types.js';
+
 export function Footer() {
-  const whatsappNumber = '21651747882'; // remplace par le vrai numéro (format international, sans +)
+  const whatsappNumber = '21651747882';
   const phoneDisplay = '+216 51 747 882';
+
+  const [topCategories, setTopCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    categoryService
+      .getTree()
+      .then((cats) => setTopCategories(cats.slice(0, 4)))
+      .catch(() => {});
+  }, []);
 
   return (
     <footer className="bg-[#1B3A57] text-[#B9C9D6] pt-10 md:pt-14 pb-6 px-4 md:px-6 mt-12 md:mt-16">
@@ -21,20 +35,50 @@ export function Footer() {
         <div>
           <h4 className="text-white font-semibold mb-4 text-sm">Catalogue</h4>
           <ul className="space-y-2 text-sm">
-            <li>Ordinateurs</li>
-            <li>Composants</li>
-            <li>Réseau</li>
-            <li>Périphériques</li>
+            {topCategories.length > 0 ? (
+              topCategories.map((cat) => (
+                <li key={cat.id}>
+                  <Link
+                    to={`/catalogue?categoryId=${cat.id}`}
+                    className="hover:text-white"
+                  >
+                    {cat.name}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <li>
+                <Link to="/catalogue" className="hover:text-white">
+                  Voir le catalogue
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
 
         <div>
           <h4 className="text-white font-semibold mb-4 text-sm">Entreprise</h4>
           <ul className="space-y-2 text-sm">
-            <li>À propos</li>
-            <li>Devis professionnels</li>
-            <li>Livraison</li>
-            <li>Contact</li>
+            <li>
+              <Link to="/a-propos" className="hover:text-white">
+                À propos
+              </Link>
+            </li>
+            <li>
+              <Link to="/devis" className="hover:text-white">
+                Devis professionnels
+              </Link>
+            </li>
+            <li>
+              <Link to="/livraison" className="hover:text-white">
+                Livraison
+              </Link>
+            </li>
+            <li>
+              <a href="mailto:contact@idealtech.tn" className="hover:text-white">
+                Contact
+              </a>
+            </li>
           </ul>
         </div>
 

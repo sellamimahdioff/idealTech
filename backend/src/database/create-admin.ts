@@ -1,4 +1,5 @@
-// Exécution : npm run seed:admin -- admin@idealtech.tn monMotDePasse123
+// Exécution : node dist/database/create-admin.js email password
+import 'dotenv/config';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module.js';
@@ -8,7 +9,7 @@ async function run() {
   const [, , email, password] = process.argv;
   if (!email || !password) {
     console.error(
-      'Usage: npm run seed:admin -- admin@idealtech.tn monMotDePasse123',
+      'Usage: node dist/database/create-admin.js email password',
     );
     process.exit(1);
   }

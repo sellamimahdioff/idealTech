@@ -10,22 +10,32 @@ export function ProductList() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const load = () => {
-    setLoading(true);
-    productService
-      .getAll({ search: search || undefined, limit: 50 })
-      .then((res) => setProducts(res.items))
-      .finally(() => setLoading(false));
-  };
-
   useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await productService.getAll({
+          search: search || undefined,
+          limit: 50,
+        });
+        if (!cancelled) setProducts(res.items);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
     load();
+    return () => {
+      cancelled = true;
+    };
   }, [search]);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer ce produit ?')) return;
     await productService.remove(id);
-    load();
+    setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
   return (

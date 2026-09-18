@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import {
   productService,
   uploadService,
@@ -49,7 +50,7 @@ export function ProductForm() {
         setImages(p.images ?? []);
       });
     }
-  }, [id]);
+  }, [id, isEdit]);
 
   const updateField = (key: keyof typeof form, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -62,7 +63,7 @@ export function ProductForm() {
     setUploading(true);
     try {
       const results = await uploadService.uploadImages(files);
-      const urls = results.map((r) => `${import.meta.env.VITE_API_URL}${r.url}`);
+      const urls = results.map((r) => r.url); // déjà une URL Cloudinary complète
       setImages((prev) => [...prev, ...urls]);
     } finally {
       setUploading(false);
@@ -99,10 +100,11 @@ export function ProductForm() {
         await productService.create(payload);
       }
       navigate('/admin/produits');
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ?? "Erreur lors de l'enregistrement.",
-      );
+    } catch (err: unknown) {
+      const message = isAxiosError(err)
+        ? (err.response?.data as { message?: string } | undefined)?.message
+        : undefined;
+      setError(message ?? "Erreur lors de l'enregistrement.");
     } finally {
       setSaving(false);
     }

@@ -51,7 +51,7 @@ export function InvoiceList() {
                   <td className="px-5 py-3">{formatPrice(inv.total_amount)}</td>
                   <td className="px-5 py-3 text-right">
                     <a
-                      href={`${import.meta.env.VITE_API_URL}${inv.pdf_url}`}
+                      href={inv.pdf_url}
                       target="_blank"
                       rel="noreferrer"
                       className="text-[#5FA8D3] font-semibold"

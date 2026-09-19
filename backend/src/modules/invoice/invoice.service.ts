@@ -45,9 +45,10 @@ export class InvoiceService {
     where: { order: { id: orderId } },
   });
   if (existing) {
-    throw new ConflictException(
-      `Une facture existe déjà pour cette commande (${existing.invoice_number}).`,
-    );
+   throw new ConflictException({
+  message: `Une facture existe déjà pour cette commande (${existing.invoice_number}).`,
+  pdf_url: existing.pdf_url,
+});
   }
 
   const invoiceNumber = await this.generateInvoiceNumber();

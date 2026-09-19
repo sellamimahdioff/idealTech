@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { orderService, invoiceService } from '../../../services/orderService.js';
 import type { Order, OrderStatus } from '../../../services/types.js';
 import { formatPrice } from '../../../utils/formatPrice.js';
@@ -20,24 +21,32 @@ export function OrderDetail() {
   const [order, setOrder] = useState<Order | null>(null);
   const [generating, setGenerating] = useState(false);
 
-  const load = () => {
+  useEffect(() => {
+    let cancelled = false;
+    if (id) {
+      orderService.getOne(Number(id)).then((data) => {
+        if (!cancelled) setOrder(data);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const reload = () => {
     if (id) orderService.getOne(Number(id)).then(setOrder);
   };
-
-  useEffect(() => {
-    load();
-  }, [id]);
 
   const handleConfirm = async () => {
     if (!order) return;
     await orderService.updateStatus(order.id, 'confirmed');
-    load();
+    reload();
   };
 
   const handleConvertToOrder = async () => {
     if (!order) return;
     await orderService.convertQuoteToOrder(order.id);
-    load();
+    reload();
   };
 
   const handleGenerateInvoice = async () => {
@@ -45,7 +54,21 @@ export function OrderDetail() {
     setGenerating(true);
     try {
       const { pdf_url } = await invoiceService.generate(order.id);
-      window.open(`${import.meta.env.VITE_API_URL}${pdf_url}`, '_blank');
+      window.open(pdf_url, '_blank');
+    } catch (err: unknown) {
+      // 409 = une facture existe déjà pour cette commande
+      if (isAxiosError(err) && err.response?.status === 409) {
+        const existingUrl = (
+          err.response.data as { pdf_url?: string } | undefined
+        )?.pdf_url;
+        if (existingUrl) {
+          window.open(existingUrl, '_blank');
+        } else {
+          alert('Une facture existe déjà pour cette commande.');
+        }
+      } else {
+        alert('Erreur lors de la génération de la facture.');
+      }
     } finally {
       setGenerating(false);
     }

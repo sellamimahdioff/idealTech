@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import type { PaginatedResult, Product } from './types.js';
+import type { PaginatedResult, Product ,BrandCount } from './types.js';
 
 export interface ProductQuery {
   categoryId?: number;
@@ -19,7 +19,8 @@ export const productService = {
     const { data } = await api.get('/products', { params: query });
     return data;
   },
-
+getBrands: (): Promise<BrandCount[]> =>
+  api.get('/products/brands').then((r) => r.data),
   getOne: async (id: number): Promise<Product> => {
     const { data } = await api.get(`/products/${id}`);
     return data;
@@ -30,10 +31,7 @@ export const productService = {
     return data;
   },
 
-  getBrands: async (): Promise<string[]> => {
-    const { data } = await api.get('/products/brands');
-    return data;
-  },
+
 
   create: async (payload: Partial<Product> & { categoryId?: number }) => {
     const { data } = await api.post('/products', payload);

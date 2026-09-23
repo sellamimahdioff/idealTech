@@ -30,7 +30,7 @@ export class ProductController {
 
   @Get('brands')
   findBrands() {
-    return this.productService.findDistinctBrands();
+    return this.productService.findBrandsWithCount();
   }
 
   @Get('export')

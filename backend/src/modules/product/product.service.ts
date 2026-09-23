@@ -56,72 +56,51 @@ export class ProductService {
   }
 
   async findAll(query: QueryProductDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+  const qb = this.productRepo
+    .createQueryBuilder('product')
+    .leftJoinAndSelect('product.category', 'category');
 
-    const qb = this.productRepo
-      .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
-
-    if (query.categoryId) {
-      qb.andWhere('category.id = :categoryId', {
-        categoryId: query.categoryId,
-      });
-    }
-
-    if (query.search) {
-      qb.andWhere(
-        '(product.name ILIKE :search OR product.sku ILIKE :search)',
-        { search: `%${query.search}%` },
-      );
-    }
-
-    if (query.brand) {
-      qb.andWhere('product.brand ILIKE :brand', { brand: `%${query.brand}%` });
-    }
-
-    if (query.minPrice !== undefined) {
-      qb.andWhere('product.retail_price >= :minPrice', {
-        minPrice: query.minPrice,
-      });
-    }
-
-    if (query.maxPrice !== undefined) {
-      qb.andWhere('product.retail_price <= :maxPrice', {
-        maxPrice: query.maxPrice,
-      });
-    }
-
-    if (query.inStock) {
-      qb.andWhere('product.stock_quantity > 0');
-    }
-
-    qb.orderBy('product.created_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
-
-    const [items, total] = await qb.getManyAndCount();
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+  if (query.categoryId) {
+    qb.andWhere('category.id = :categoryId', { categoryId: query.categoryId });
+  }
+  if (query.search) {
+    qb.andWhere('(product.name LIKE :search OR product.sku LIKE :search)', {
+      search: `%${query.search}%`,
+    });
+  }
+  if (query.brand) {
+    qb.andWhere('product.brand = :brand', { brand: query.brand });
+  }
+  if (query.minPrice !== undefined) {
+    qb.andWhere('product.retail_price >= :minPrice', { minPrice: query.minPrice });
+  }
+  if (query.maxPrice !== undefined) {
+    qb.andWhere('product.retail_price <= :maxPrice', { maxPrice: query.maxPrice });
   }
 
-  // Liste des marques distinctes présentes au catalogue (pour peupler le filtre)
-  async findDistinctBrands(): Promise<string[]> {
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 12;
+  qb.skip((page - 1) * limit).take(limit);
+
+  const [items, total] = await qb.getManyAndCount();
+  return { items, totalPages: Math.ceil(total / limit), total, page };
+}
+
+  
+  // Liste des marques avec le nombre de produits pour chacune (filtre catalogue)
+  async findBrandsWithCount(): Promise<{ brand: string; count: number }[]> {
     const rows = await this.productRepo
       .createQueryBuilder('product')
-      .select('DISTINCT product.brand', 'brand')
+      .select('product.brand', 'brand')
+      .addSelect('COUNT(*)', 'count')
       .where('product.brand IS NOT NULL')
+      .groupBy('product.brand')
       .orderBy('product.brand', 'ASC')
-      .getRawMany();
-    return rows.map((r) => r.brand).filter(Boolean);
-  }
+      .getRawMany<{ brand: string; count: string }>();
 
+    // MySQL renvoie COUNT(*) en string via getRawMany, on caste en number
+    return rows.map((r) => ({ brand: r.brand, count: Number(r.count) }));
+  }
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepo.findOne({
       where: { id },

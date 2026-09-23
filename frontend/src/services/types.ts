@@ -86,3 +86,8 @@ export interface Review {
   created_at: string;
   product?: Product;
 }
+
+export interface BrandCount {
+  brand: string;
+  count: number;
+}

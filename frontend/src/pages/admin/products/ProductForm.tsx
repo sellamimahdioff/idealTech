@@ -18,6 +18,7 @@ export function ProductForm() {
   const [form, setForm] = useState({
     sku: '',
     name: '',
+    brand: '',
     description: '',
     retail_price: '',
     wholesale_price: '',
@@ -27,17 +28,23 @@ export function ProductForm() {
   });
   const [images, setImages] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [existingBrands, setExistingBrands] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     categoryService.getFlat().then(setCategories);
+    productService
+      .getBrands()
+      .then((brands) => setExistingBrands(brands.map((b) => b.brand)));
+
     if (isEdit) {
       productService.getOne(Number(id)).then((p) => {
         setForm({
           sku: p.sku,
           name: p.name,
+          brand: p.brand ?? '',
           description: p.description ?? '',
           retail_price: String(p.retail_price),
           wholesale_price: p.wholesale_price ? String(p.wholesale_price) : '',
@@ -82,6 +89,7 @@ export function ProductForm() {
       const payload = {
         sku: form.sku,
         name: form.name,
+        brand: form.brand || undefined,
         description: form.description || undefined,
         retail_price: Number(form.retail_price),
         wholesale_price: form.wholesale_price
@@ -133,6 +141,25 @@ export function ProductForm() {
             onChange={(e) => updateField('name', e.target.value)}
             required
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-[#2E2E2E]">
+            Marque
+          </label>
+          <input
+            type="text"
+            list="brands-list"
+            value={form.brand}
+            onChange={(e) => updateField('brand', e.target.value)}
+            placeholder="ex. Samsung, HP, Logitech..."
+            className="border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-[#5FA8D3]"
+          />
+          <datalist id="brands-list">
+            {existingBrands.map((b) => (
+              <option key={b} value={b} />
+            ))}
+          </datalist>
         </div>
 
         <div className="flex flex-col gap-1.5">

@@ -7,6 +7,7 @@ import { useCartStore } from '../../store/cartStore.js';
 import { ReviewsSection } from '../../components/product/ReviewsSection.js';
 import { RelatedProducts } from '../../components/product/RelatedProducts.js';
 import { StockAlertButton } from '../../components/product/StockAlertButton.js';
+import { optimizeCloudinaryUrl } from '../../utils/cloudinaryUrl.js';
 
 export function ProductDetail() {
   const { id } = useParams();
@@ -37,15 +38,17 @@ export function ProductDetail() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         <div>
           <div className="h-64 md:h-80 bg-gray-100 rounded-xl flex items-center justify-center mb-3 overflow-hidden">
-            {product.images?.[activeImage] ? (
-              <img
-                src={product.images[activeImage]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-sm text-[#A6A6A6]">Pas d'image</span>
-            )}
+           {product.images?.[activeImage] ? (
+  <img
+    src={optimizeCloudinaryUrl(product.images[activeImage], 800)}
+    alt={product.name}
+    loading="eager"
+    decoding="async"
+    className="w-full h-full object-cover"
+  />
+) : (
+  <span className="text-sm text-[#A6A6A6]">Pas d'image</span>
+)}
           </div>
           {product.images?.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
@@ -57,8 +60,12 @@ export function ProductDetail() {
                     i === activeImage ? 'border-[#5FA8D3]' : 'border-transparent'
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
+<img
+  src={optimizeCloudinaryUrl(img, 100)}
+  alt=""
+  loading="lazy"
+  className="w-full h-full object-cover"
+/>                </button>
               ))}
             </div>
           )}

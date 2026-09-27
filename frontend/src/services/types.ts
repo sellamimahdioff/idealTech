@@ -19,6 +19,7 @@ export interface Product {
   stock_quantity: number;
   category?: Category;
   images: string[];
+  imagePublicIds?: string[];
   created_at: string;
 }
 

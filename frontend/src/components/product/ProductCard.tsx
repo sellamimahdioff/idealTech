@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../../services/types.js';
 import { formatPrice } from '../../utils/formatPrice.js';
 import { useCartStore } from '../../store/cartStore.js';
+import { optimizeCloudinaryUrl } from '../../utils/cloudinaryUrl.js';
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
@@ -16,15 +17,17 @@ export function ProductCard({ product }: { product: Product }) {
 
       <Link to={`/produit/${product.id}`}>
         <div className="h-36 bg-gradient-to-br from-[#EAF3FA] to-gray-100 flex items-center justify-center text-xs text-[#A6A6A6]">
-          {product.images?.[0] ? (
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            'Photo produit'
-          )}
+         {product.images?.[0] ? (
+  <img
+    src={optimizeCloudinaryUrl(product.images[0], 400)}
+    alt={product.name}
+    loading="lazy"
+    decoding="async"
+    className="w-full h-full object-cover"
+  />
+) : (
+  'Photo produit'
+)}
         </div>
       </Link>
       <div className="p-4 flex flex-col flex-1">

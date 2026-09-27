@@ -9,6 +9,7 @@ import { categoryService } from '../../../services/categoryService.js';
 import type { Category } from '../../../services/types.js';
 import { Field } from '../../../components/ui/Field.js';
 import { Button } from '../../../components/ui/Button.js';
+import { optimizeCloudinaryUrl } from '../../../utils/cloudinaryUrl.js';
 
 export function ProductForm() {
   const { id } = useParams();
@@ -246,10 +247,11 @@ export function ProductForm() {
               {images.map((url) => (
                 <div key={url} className="relative">
                   <img
-                    src={url}
-                    alt=""
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
+  src={optimizeCloudinaryUrl(url, 100)}
+  alt=""
+  loading="lazy"
+  className="w-20 h-20 object-cover rounded-lg"
+/>
                   <button
                     type="button"
                     onClick={() => removeImage(url)}

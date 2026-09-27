@@ -18,9 +18,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
-// En production (Render), le disque est éphémère : on garde les fichiers
-// en mémoire (buffer) le temps de les envoyer à Cloudinary, sans jamais
-// les écrire sur le disque local.
 const multerMemoryConfig = {
   storage: memoryStorage(),
   fileFilter: (_req: any, file: any, callback: any) => {
@@ -40,13 +37,19 @@ const multerMemoryConfig = {
 function uploadBufferToCloudinary(
   buffer: Buffer,
   folder: string,
-): Promise<{ secure_url: string }> {
+): Promise<{ secure_url: string; public_id: string }> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: 'image' },
+      {
+        folder,
+        resource_type: 'image',
+        quality: 'auto',
+        fetch_format: 'auto',
+        transformation: [{ width: 1600, crop: 'limit' }],
+      },
       (error, result) => {
         if (error || !result) return reject(error);
-        resolve(result as { secure_url: string });
+        resolve(result as { secure_url: string; public_id: string });
       },
     );
     stream.end(buffer);
@@ -68,6 +71,7 @@ export class UploadController {
     );
     return {
       url: result.secure_url,
+      publicId: result.public_id,
       originalName: file.originalname,
       size: file.size,
     };
@@ -87,6 +91,7 @@ export class UploadController {
     );
     return results.map((r, i) => ({
       url: r.secure_url,
+      publicId: r.public_id,
       originalName: files[i].originalname,
       size: files[i].size,
     }));

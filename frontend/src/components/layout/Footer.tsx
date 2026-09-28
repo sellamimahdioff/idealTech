@@ -4,8 +4,8 @@ import { categoryService } from '../../services/categoryService.js';
 import type { Category } from '../../services/types.js';
 
 export function Footer() {
-  const whatsappNumber = '21651747882';
-  const phoneDisplay = '+216 51 747 882';
+  const whatsappNumber = '+21629538549';
+  const phoneDisplay = '+216 29 538 549';
 
   const [topCategories, setTopCategories] = useState<Category[]>([]);
 
@@ -74,11 +74,7 @@ export function Footer() {
                 Livraison
               </Link>
             </li>
-            <li>
-              <a href="mailto:contact@idealtech.tn" className="hover:text-white">
-                Contact
-              </a>
-            </li>
+            
           </ul>
         </div>
 
@@ -105,14 +101,13 @@ export function Footer() {
                 💬 WhatsApp
               </a>
             </li>
-            <li>Tunis, Tunisie</li>
+            <li>Avenue mohamed baklouti poudrière 1 , Sfax</li>
           </ul>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 md:mt-10 pt-5 border-t border-white/10 text-xs flex flex-col md:flex-row gap-2 justify-between">
         <span>© {new Date().getFullYear()} iDeal Tech — Tous droits réservés</span>
-        <span>Matricule fiscal : XXXXXXX</span>
       </div>
     </footer>
   );

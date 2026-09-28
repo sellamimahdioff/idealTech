@@ -14,14 +14,42 @@ export function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
     if (id) productService.getOne(Number(id)).then(setProduct);
   }, [id]);
 
+  const selectImage = (i: number) => {
+    if (i === activeImage) return;
+    setImgLoaded(false);
+    setActiveImage(i);
+  };
+
   if (!product) {
-    return <p className="max-w-7xl mx-auto px-6 py-10 text-sm">Chargement...</p>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          <div>
+            <div className="h-64 md:h-80 bg-gray-200 rounded-xl mb-3" />
+            <div className="flex gap-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="w-16 h-16 bg-gray-200 rounded-lg" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-3 w-24 bg-gray-200 rounded" />
+            <div className="h-3 w-32 bg-gray-200 rounded" />
+            <div className="h-6 w-3/4 bg-gray-200 rounded" />
+            <div className="h-8 w-32 bg-gray-200 rounded" />
+            <div className="h-20 w-full bg-gray-200 rounded" />
+            <div className="h-11 w-48 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const isWholesale =
@@ -37,35 +65,45 @@ export function ProductDetail() {
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         <div>
-          <div className="h-64 md:h-80 bg-gray-100 rounded-xl flex items-center justify-center mb-3 overflow-hidden">
-           {product.images?.[activeImage] ? (
-  <img
-    src={optimizeCloudinaryUrl(product.images[activeImage], 800)}
-    alt={product.name}
-    loading="eager"
-    decoding="async"
-    className="w-full h-full object-cover"
-  />
-) : (
-  <span className="text-sm text-[#A6A6A6]">Pas d'image</span>
-)}
+          <div className="h-64 md:h-80 bg-gray-100 rounded-xl flex items-center justify-center mb-3 overflow-hidden relative">
+            {product.images?.[activeImage] ? (
+              <>
+                {!imgLoaded && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
+                <img
+                  key={activeImage}
+                  src={optimizeCloudinaryUrl(product.images[activeImage], 800)}
+                  alt={product.name}
+                  loading="eager"
+                  decoding="async"
+                  onLoad={() => setImgLoaded(true)}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${
+                    imgLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </>
+            ) : (
+              <span className="text-sm text-[#A6A6A6]">Pas d'image</span>
+            )}
           </div>
           {product.images?.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
               {product.images.map((img, i) => (
                 <button
                   key={img}
-                  onClick={() => setActiveImage(i)}
+                  onClick={() => selectImage(i)}
                   className={`w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
                     i === activeImage ? 'border-[#5FA8D3]' : 'border-transparent'
                   }`}
                 >
-<img
-  src={optimizeCloudinaryUrl(img, 100)}
-  alt=""
-  loading="lazy"
-  className="w-full h-full object-cover"
-/>                </button>
+                  <img
+                    src={optimizeCloudinaryUrl(img, 100)}
+                    alt=""
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
               ))}
             </div>
           )}

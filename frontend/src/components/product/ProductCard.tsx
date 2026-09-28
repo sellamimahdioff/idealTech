@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../../services/types.js';
 import { formatPrice } from '../../utils/formatPrice.js';
@@ -6,6 +7,7 @@ import { optimizeCloudinaryUrl } from '../../utils/cloudinaryUrl.js';
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col relative">
@@ -16,18 +18,26 @@ export function ProductCard({ product }: { product: Product }) {
       )}
 
       <Link to={`/produit/${product.id}`}>
-        <div className="h-36 bg-gradient-to-br from-[#EAF3FA] to-gray-100 flex items-center justify-center text-xs text-[#A6A6A6]">
-         {product.images?.[0] ? (
-  <img
-    src={optimizeCloudinaryUrl(product.images[0], 400)}
-    alt={product.name}
-    loading="lazy"
-    decoding="async"
-    className="w-full h-full object-cover"
-  />
-) : (
-  'Photo produit'
-)}
+        <div className="h-36 bg-gradient-to-br from-[#EAF3FA] to-gray-100 flex items-center justify-center text-xs text-[#A6A6A6] relative">
+          {product.images?.[0] ? (
+            <>
+              {!imgLoaded && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+              )}
+              <img
+                src={optimizeCloudinaryUrl(product.images[0], 400)}
+                alt={product.name}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImgLoaded(true)}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${
+                  imgLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            </>
+          ) : (
+            'Photo produit'
+          )}
         </div>
       </Link>
       <div className="p-4 flex flex-col flex-1">

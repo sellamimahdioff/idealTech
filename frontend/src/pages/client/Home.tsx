@@ -8,10 +8,19 @@ import type { Product, Category } from '../../services/types.js';
 export function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
-    productService.getAll({ limit: 8 }).then((res) => setProducts(res.items));
-    categoryService.getTree().then(setCategories);
+    productService
+      .getAll({ limit: 8 })
+      .then((res) => setProducts(res.items))
+      .finally(() => setProductsLoading(false));
+
+    categoryService
+      .getTree()
+      .then(setCategories)
+      .finally(() => setCategoriesLoading(false));
   }, []);
 
   return (
@@ -59,22 +68,32 @@ export function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/catalogue?categoryId=${cat.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:border-[#5FA8D3]"
-            >
-              <h3 className="text-sm font-semibold text-[#2E2E2E]">
-                {cat.name}
-              </h3>
-              {cat.children && (
-                <span className="text-xs text-[#A6A6A6]">
-                  {cat.children.length} sous-catégories
-                </span>
-              )}
-            </Link>
-          ))}
+          {categoriesLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-200 rounded-xl p-5 animate-pulse"
+                >
+                  <div className="h-4 w-2/3 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                </div>
+              ))
+            : categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/catalogue?categoryId=${cat.id}`}
+                  className="bg-white border border-gray-200 rounded-xl p-5 hover:border-[#5FA8D3]"
+                >
+                  <h3 className="text-sm font-semibold text-[#2E2E2E]">
+                    {cat.name}
+                  </h3>
+                  {cat.children && (
+                    <span className="text-xs text-[#A6A6A6]">
+                      {cat.children.length} sous-catégories
+                    </span>
+                  )}
+                </Link>
+              ))}
         </div>
       </section>
 
@@ -87,7 +106,7 @@ export function Home() {
             Voir plus →
           </Link>
         </div>
-        <ProductGrid products={products} />
+        <ProductGrid products={products} loading={productsLoading} />
       </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-16">

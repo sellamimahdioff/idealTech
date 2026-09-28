@@ -25,36 +25,37 @@ export function Catalog() {
     productService.getBrands().then(setBrands);
   }, []);
 
- useEffect(() => {
-  let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-  queueMicrotask(() => {
-    if (!cancelled) setLoading(true);
-  });
-
-  productService
-    .getAll({
-      categoryId: categoryId ? Number(categoryId) : undefined,
-      search: search || undefined,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
-      brand: brand || undefined,
-      page,
-      limit: 12,
-    })
-    .then((res) => {
-      if (cancelled) return;
-      setProducts(res.items);
-      setTotalPages(res.totalPages);
-    })
-    .finally(() => {
-      if (!cancelled) setLoading(false);
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
     });
 
-  return () => {
-    cancelled = true;
-  };
-}, [categoryId, search, minPrice, maxPrice, brand, page]);
+    productService
+      .getAll({
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        search: search || undefined,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        brand: brand || undefined,
+        page,
+        limit: 12,
+      })
+      .then((res) => {
+        if (cancelled) return;
+        setProducts(res.items);
+        setTotalPages(res.totalPages);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId, search, minPrice, maxPrice, brand, page]);
+
   const updateParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value);
@@ -132,32 +133,24 @@ export function Catalog() {
           </h1>
         </div>
 
-        {loading ? (
-          <p className="text-sm text-[#A6A6A6]">Chargement...</p>
-        ) : (
-          <>
-            <ProductGrid products={products} />
+        <ProductGrid products={products} loading={loading} />
 
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8 flex-wrap">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      onClick={() => updateParam('page', String(p))}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium ${
-                        p === page
-                          ? 'bg-[#1B3A57] text-white'
-                          : 'bg-white border border-gray-200 text-[#2E2E2E]'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ),
-                )}
-              </div>
-            )}
-          </>
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8 flex-wrap">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => updateParam('page', String(p))}
+                className={`w-9 h-9 rounded-lg text-sm font-medium ${
+                  p === page
+                    ? 'bg-[#1B3A57] text-white'
+                    : 'bg-white border border-gray-200 text-[#2E2E2E]'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
